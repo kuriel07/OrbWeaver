@@ -256,9 +256,9 @@ install(FILES StackConfig.cmake DESTINATION lib/cmake/stack)
 #set_property( TARGET glome APPEND_STRING PROPERTY COMPILE_FLAGS -Wall )
 
 message("--- building glome compiler.")
-#add_executable(glome_int ${glome_source_files} )
-add_executable(glome ${glome_source_files} ${PROJECT_SOURCE_DIR}/StackLib/StackVM/vm_interpreter.c)
-target_compile_definitions(glome PRIVATE "-DSTANDALONE_INTERPRETER")
+add_executable(glome ${glome_source_files} )
+#add_executable(glome ${glome_source_files} ${PROJECT_SOURCE_DIR}/StackLib/StackVM/vm_interpreter.c)
+target_compile_definitions(glome PRIVATE "-DSTANDALONE_COMPILER")
 target_link_libraries(glome ${libcgi_LIBRARIES})
 
 
