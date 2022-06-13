@@ -31,7 +31,8 @@ check server.txt for detail configuration, server port and certificates
     torus [filename]     --> start executing script file
     torus -c server.txt  --> running as webserver (need www directory)
 
-[![Orbweaver](https://raw.githubusercontent.com/kuriel07/pandora/master/orbweaver_final.png "OrbWeaver Logo")](https://orbweaver.dev/)
+![OrbWeaver](https://raw.githubusercontent.com/kuriel07/pandora/master/orbweaver_final.png "OrbWeaver logo") 
+
 
 
 
