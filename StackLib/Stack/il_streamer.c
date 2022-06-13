@@ -700,7 +700,7 @@ void is_clear_lblrec(void) {
 	_lblhead = NULL;
 }
 
-#ifdef STANDALONE_INTERPRETER
+#if defined( STANDALONE_INTERPRETER) || defined(STANDALONE_COMPILER)
 uint32 vm_fetch(VM_DEF_ARG, uint32 offset, uchar * buffer, uint32 size) {
 	//printf("offset %x, size : %x\r\n", offset, size);
 	memcpy(buffer, _istream_code_buffer + offset, size);

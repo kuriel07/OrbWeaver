@@ -226,11 +226,13 @@ void pk_init(uchar * inpath) {
 	uchar pkpath[512];
 	uchar index = 0;
 	_pk_root = NULL;
+	printf("output : %s\n", pkpath);
 	if(inpath == NULL) return;
 	strcpy(_RECAST(char *,pkpath), _RECAST(const char *, inpath));
 	index = (uint32)strchr(_RECAST( char *, pkpath), '.') - (uint32)pkpath;
 	pkpath[index] = 0;
 	sprintf(_RECAST(char *,pkpath), "%s%s", pkpath, ".orb");
+	printf("output : %s\n", pkpath);
 	_pkfile = fopen(_RECAST(const char *, pkpath), "wb");
 	if(_pkfile == NULL) return;
 //#endif
