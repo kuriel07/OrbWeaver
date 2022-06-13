@@ -60,7 +60,7 @@ void vm_object_unref(vm_object * obj) {
 }
 
 
-#if defined(__cplusplus_cli) || defined(STACK_HOST)
+#if defined(__cplusplus_cli) || defined(STACK_HOST) || defined(STANDALONE_COMPILER)
 LIB_API void vm_init(VM_DEF_ARG, pk_object * root, uint32 heap_size)
 {
 	//memset(_vm_stacks, 0, sizeof(_vm_stacks));
