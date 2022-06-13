@@ -1,4 +1,21 @@
-this is the sourcecode for OrbWeaver scripting language
+this is the sourcecode for OrbWeaver scripting language (weak, dynamic type, object oriented, imperative), OrbWeaver support native call to external library based on x64 calling convention for Windows x64 and System V EABI for Linux, just add the library to /modules path of the OrbWeaver binary and declare the interface on /includes directory, see example modules for detail (modules.zip)
+
+    interface gtk lib "libgtk_lib.so" {
+        int MessageBox(string text, string title, int type);
+        var Button(string text);
+        var Label(string text);
+        var Window(string text);
+        var Run();
+        var BuilderFromFile(string path);
+        var BuilderFromString(string content);
+        var Application(string name, string callback);
+        void setup();
+    }
+
+OrbWeaver act as intermediate interface between user script and native library, enabling user to access native library through scripting language, declared interface are loaded by interpreter automatically and can be accessed like accessing static class
+every objects in OrbWeaver are treated as byte array, the content determined by the API which created the object (can be string or pointer), type punning or dependency injection is possible using this mechanism
+default API supports array, object, threading, stream, serializer/deserializer
+syntax supports lazy expression, lambda expression, external API access, internal API access
 
 ## system requirements
 * CMake
@@ -7,7 +24,7 @@ this is the sourcecode for OrbWeaver scripting language
 * SQLite3 (Mandatory, Linux) for session web server API
 * Jansson (Mandatory, Linux) for JSON API
 * OpenSSL (Mandatory, Linux) for https (webserver)
-* PostgreSQL (Optional, Linux) for DAL (database abstraction layer example)
+* PostgreSQL (Optional, Linux) for DAL (Database Abstraction Layer example)
 
 ## build
     cmake --config .
