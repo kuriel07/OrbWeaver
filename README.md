@@ -27,7 +27,7 @@ check server.txt for detail configuration, server port and certificates
 
 
 ## usage :
-    glome [filename]     --> compiler (use -ca to compile-assembler bytecodes)
+    glome -ca [filename]     --> compiler (use -ca to compile-assembler bytecodes)
     torus [filename]     --> start executing script file
     torus -c server.txt  --> running as webserver (need www directory)
 
