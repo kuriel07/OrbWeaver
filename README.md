@@ -38,9 +38,8 @@ syntax supports lazy expression, lambda expression, external API access, interna
 download modules and includes
 https://github.com/kuriel07/pandora/blob/master/modules.zip
 
-## download sample server.txt file, includes and modules must exist first
-https://github.com/kuriel07/pandora/blob/master/server_config.zip
-check server.txt for detail configuration, server port and certificates
+## download sample server.txt file
+https://github.com/kuriel07/pandora/blob/master/server_config.zip, includes and modules must exist first, check server.txt for detail configuration, server port and certificates
 
 
 ## usage :
