@@ -1,4 +1,4 @@
-this is the sourcecode for OrbWeaver scripting language (weak, dynamic type, object oriented, imperative), OrbWeaver support native call to external library based on x64 calling convention for Windows x64 and System V EABI for Linux, just add the library to /modules path of the OrbWeaver binary and declare the interface on /includes directory, see example modules for detail (modules.zip)
+this is the sourcecode for OrbWeaver scripting language (weak, static type, object oriented, imperative), OrbWeaver support native call to external library based on x64 calling convention for Windows x64 and System V EABI for Linux, just add the library to /modules path of the OrbWeaver binary and declare the interface on /includes directory, see example modules for detail (modules.zip)
 
     interface gtk lib "libgtk_lib.so" {
         int MessageBox(string text, string title, int type);
