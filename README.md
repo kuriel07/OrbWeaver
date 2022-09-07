@@ -48,51 +48,48 @@ https://github.com/kuriel07/pandora/blob/master/server_config.zip, includes and 
     torus -c server.txt  --> running as webserver (need www directory)
 
 
-;additional references
-;might need to install these packages
-sudo apt install libssl-dev
-sudo apt install libglib2.0-dev
-sudo apt install libjansson-dev
-sudo apt install libpq-dev
-sudo apt install libsqlite3-dev
+## additional references
+might need to install these packages
+    sudo apt install libssl-dev
+    sudo apt install libglib2.0-dev
+    sudo apt install libjansson-dev
+    sudo apt install libpq-dev
+    sudo apt install libsqlite3-dev
 
 
-;if cmake cannot find sqlite3, might need to install cmake version >3.2
-;since version cmake 3.2 "cmake --config ." replaced by "cmake -S ."
+if cmake cannot find sqlite3, might need to install cmake version >3.2
+since version cmake 3.2 "cmake --config ." replaced by "cmake -S ."
 
-;install sqlite3 from sourcecode if necessary
-git clone https://github.com/sqlite/sqlite.git 
-cd sqlite
-cmake --config .
-cmake --build .
-cmake install
+## install sqlite3 from sourcecode if necessary
+    git clone https://github.com/sqlite/sqlite.git 
+    cd sqlite
+    cmake --config .
+    cmake --build .
+    cmake install
 
- =====  WSL ====
-;case of WSL environment
-;cmake need modules FindSQLite3.cmake /usr/share/cmake , need newer version > 3.2
-sudo apt-get update
-sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
-After that is finished
-
-wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
+## =====  WSL ====
+case of WSL environment
+cmake need modules FindSQLite3.cmake /usr/share/cmake , need newer version > 3.2
+    sudo apt-get update
+    sudo apt-get install apt-transport-https ca-certificates gnupg software-properties-common wget
+    After that is finished
+    
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | sudo apt-key add -
 Next add the updated repository by typing in the following
 
-sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
-sudo apt-get update
+    sudo apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main'
+    sudo apt-get update
 
-sudo apt install cmake
-
-
- =====  WSL ====
+    sudo apt install cmake
 
 
-;install cmake from sourcecode (build)
-wget http://www.sqlite.org/sqlite-autoconf-3070603.tar.gz
-tar xvfz sqlite-autoconf-3070603.tar.gz
-cd sqlite-autoconf-3070603
-./configure
-make
-make install
+## install cmake from sourcecode (build)
+    wget http://www.sqlite.org/sqlite-autoconf-3070603.tar.gz
+    tar xvfz sqlite-autoconf-3070603.tar.gz
+    cd sqlite-autoconf-3070603
+    ./configure
+    make
+    make install
 
 ![OrbWeaver](https://raw.githubusercontent.com/kuriel07/pandora/master/orbweaver_final.png "OrbWeaver logo") 
 
