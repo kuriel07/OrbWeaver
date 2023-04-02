@@ -16,14 +16,13 @@
 #include <pthread.h>
 #endif
 
-
 static int http_url_callback(http_parser* parser, const char *at, size_t length) {
 	net_instance * instance;
 	instance = (net_instance *)parser->data;
 	char * s = (char *)malloc(length + 1);
 	strncpy(s, at, length);
 	s[length]=0;
-	sprintf(instance->url, "%s", s);
+	snprintf(instance->url, NET_INSTANCE_URL_SIZE, "%s", s);
 	free(s);
 	return 0;
 }
@@ -131,6 +130,27 @@ static const unsigned char pr2six[256] =
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64
 };
 
+int16 http_url_get_param(char * url, uint16 index, char * param) {
+	int start = 0;
+	int i = start;
+	int16 len = -1;
+	int cur_index = -1;
+	while(url[i] != 0) {
+		if(url[i] == '/') {
+			if(cur_index == index) break;
+			cur_index++;
+			start = i+1;
+		}
+		i++;
+	}
+	if(cur_index == index) {
+		len = i - start;
+		//printf("len : %d\n", len);
+		if(param != NULL) memcpy(param, url+start, len);
+	}
+	return len;
+}
+
 uint16 http_base64_length(uint8 * bufcoded)
 {
     int nbytesdecoded;
@@ -146,10 +166,10 @@ uint16 http_base64_length(uint8 * bufcoded)
     return nbytesdecoded + 1;
 }
 
-uint16 http_base64_encode(uint8 * bytes_to_encode, uint16 in_len, uint8 * outbuf) {
-  uint16 out_len = 0;
-  uint16 i = 0;
-  uint16 j = 0;
+uint32 http_base64_encode(uint8 * bytes_to_encode, uint32 in_len, uint8 * outbuf) {
+  uint32 out_len = 0;
+  uint32 i = 0;
+  uint32 j = 0;
   uint8 char_array_3[3];
   uint8 char_array_4[4];
 	const uint8 base64_chars[] = 
@@ -191,8 +211,8 @@ uint16 http_base64_encode(uint8 * bytes_to_encode, uint16 in_len, uint8 * outbuf
   return out_len;
 }
 
-uint16 http_base64_decode(uint8 * buffer, uint16 size) {
-	uint16 nbytesdecoded;
+uint32 http_base64_decode(uint8 * buffer, uint32 size) {
+	uint32 nbytesdecoded;
     register const unsigned char *bufin;
     register unsigned char *bufout;
     register int nprbytes;
@@ -316,6 +336,108 @@ uint16 http_html_unescape(uint8 * src, uint8 * dst) {
 	return j;
 }
 
+
+http_param* http_param_create(char* key, char* value, int max_size) {
+	int len = max_size;
+	http_param* param = (http_param*)malloc(sizeof(http_param) +  len + 1);
+	param->next = NULL;
+	strncpy(param->name, key, OWS_MAX_VARIABLE_NAME);
+	if (value != NULL) strncpy(param->value, value, max_size);
+	param->value[len] = 0;
+	//printf("create new param %s : %s\n", key, param->value);
+	//printf("====================================\n");
+	return param;
+}
+
+http_param* http_param_add(http_param* root, http_param* param) {
+	http_param* iterator;
+	if (root == NULL) return param;
+	iterator = root;
+	while (iterator->next != NULL) {
+		iterator = iterator->next;
+	}
+	iterator->next = param;
+	return root;
+}
+
+
+http_param* http_param_get(http_param* root, char* key) {
+	http_param* iterator;
+	http_param* candidate;
+	if (root == NULL) return NULL;
+	iterator = root;
+	while (iterator != NULL) {
+		if (istrncmp(iterator->name, key, OWS_MAX_VARIABLE_NAME) == 0) {
+			return iterator;
+		}
+		iterator = iterator->next;
+	}
+	return NULL;
+}
+
+http_param* http_param_remove(http_param* root, http_param* param) {
+	http_param* iterator;
+	http_param* prev_iterator = root;
+	if (root == NULL) return NULL;
+	if (root == param) return NULL;
+	iterator = root;
+	while (iterator != NULL) {
+		if (strncmp(iterator->name, param->name, OWS_MAX_VARIABLE_NAME) == 0) {
+			prev_iterator->next = param->next;
+			return param;
+		}
+		prev_iterator = iterator;
+		iterator = iterator->next;
+	}
+	return NULL;
+}
+
+http_param* http_param_update(http_param* root, http_param* old, http_param* param) {
+	http_param* iterator;
+	http_param* prev_iterator = root;
+	if (root == NULL) return NULL;
+	if (root == param) return NULL;	//cannot update root
+	iterator = root;
+	while (iterator != NULL) {
+		if (strncmp(iterator->name, old->name, OWS_MAX_VARIABLE_NAME) == 0) {
+			prev_iterator->next = param;
+			param->next = old->next;
+			return old;
+		}
+		prev_iterator = iterator;
+		iterator = iterator->next;
+	}
+	return NULL;
+}
+
+http_param* http_param_dump(http_param* root) {
+	http_param* iterator;
+	http_param* candidate;
+	if (root == NULL) return NULL;
+	iterator = root;
+	while (iterator != NULL) {
+		printf("%s : %s\n", iterator->name, iterator->value);
+		iterator = iterator->next;
+	}
+	return NULL;
+}
+
+void http_param_clear(http_param* root) {
+	http_param* iterator;
+	http_param* candidate;
+	if (root == NULL) return;
+	iterator = root;
+	while (iterator != NULL) {
+		candidate = iterator;
+		iterator = iterator->next;
+		free(candidate);
+	}
+}
+
+void http_param_release(http_param* param) {
+	free(param);
+}
+
 net_ext_mime g_mime_list[] = {
 	{ NET_MIME_BINARY, ".jpg", "image/jpeg"  },
 	{ NET_MIME_BINARY, ".jpeg", "image/jpeg"  },
@@ -425,7 +547,7 @@ void * http_decode(net_instance * instance, net_entry * root, char * request, in
 			}
 			//invalid file extension
 			if(ext_iterator->type != NET_MIME_END) {
-				sprintf(path, "./www%s", instance->url); 
+				snprintf(path, sizeof(path), "./www%s", instance->url); 
 				FILE * file = fopen(path, "rb");
 				int filesize = 0;
 				char * filecontent = NULL;
@@ -436,7 +558,7 @@ void * http_decode(net_instance * instance, net_entry * root, char * request, in
 						param = net_param_create("Content-Type", ext_iterator->mime, 64);
 						net_param_add(instance->response_headers, param);
 					} else {
-						sprintf(param->value, "%s", ext_iterator->mime);
+						snprintf(param->value, param->length, "%s", ext_iterator->mime);
 					}
 					fseek(file, 0, SEEK_END);
 					filesize = ftell(file);
@@ -477,7 +599,7 @@ void * http_decode(net_instance * instance, net_entry * root, char * request, in
 		response_content = (char *)instance->response_payload;
 	} else {
 		error_content = (char * )malloc(512);
-		sprintf(error_content, "Error %d", error);
+		snprintf(error_content, 512, "Error %d", error);
 		content_length = strlen(error_content);
 		response_content = error_content;
 	}
@@ -487,11 +609,11 @@ void * http_decode(net_instance * instance, net_entry * root, char * request, in
 		param = net_param_create("Content-Length", "0", 64);
 		net_param_add(instance->response_headers, param);
 	}
-	sprintf(param->value, "%d", content_length);
+	snprintf(param->value, param->length, "%d", content_length);
 	  //allocate new response buffer
 	response = (char *)malloc(4096 + content_length);
 	memset(response, 0, 4096 + content_length);
-	sprintf(response, "HTTP/1.1 200 OK\r\n");
+	snprintf(response, 4096, "HTTP/1.1 200 OK\r\n");
 	response_length = strlen(response);
 	param = instance->response_headers;
 	while(param != NULL) {
@@ -508,11 +630,80 @@ void * http_decode(net_instance * instance, net_entry * root, char * request, in
 	return response;
 }
 
+
+int http_read_request(void * conn, char ** buffer) {
+	char request[32768];
+	char * header;
+	char * temp;
+	char * value;
+	char * buf = NULL;
+	unsigned content_length;
+	size_t len;
+	int consume_len = 0;
+	int needed_len = 0;
+	//int recv_size = SSL_read((SSL *)ssl, request, sizeof(request));
+	int recv_size = net_recv(conn, request, sizeof(request), 0);
+	if(recv_size < sizeof(request)) {
+		//buf = malloc(recv_size + 1);
+		//memcpy(buf, request, recv_size);
+	//} else {
+		//look ahead operation
+		request[recv_size] = 0;
+		header = istrstr(request, "Content-Length");		//need to case-insensitive without changing request buffer
+		if(header== NULL) {
+			//printf("no content-length\n");
+			buf = malloc(recv_size + 1);
+			memcpy(buf, request, recv_size);
+			buf[recv_size] = 0;
+			buffer[0] = buf;
+			return recv_size;		//unable to read content-length, might be invalid http payload
+		}
+		//printf("looking for linebreak\n");
+		len = http_mp_next_linebreak(header);
+		temp = malloc(len + 1);
+		if(temp != NULL) {
+			memcpy(temp, header, len);
+			temp[len] = 0;
+			//printf("http_mp_str_next_token\n");
+			value = http_mp_str_next_token(temp, ':');
+			if(value != NULL) {
+				value += 1;		//skip delimiter
+				//printf("content length : %s\n", value);
+				content_length = atoi(value);
+				if(content_length < recv_size) {
+					printf("singlepart request %d\n", recv_size);
+					buf = malloc(recv_size + 1);
+					memcpy(buf, request, recv_size);
+					buf[recv_size] = 0;
+				} else {
+					printf("multipart request %d\n", recv_size);
+					needed_len = recv_size + content_length;
+					buf = malloc(needed_len + 1);
+					memcpy(buf, request, recv_size);
+					//if(content_length > recv_size) {
+					while(recv_size < needed_len) {
+						//recv_size += SSL_read(ssl, buf + recv_size, content_length);
+						recv_size += net_recv(conn, buf + recv_size, content_length, 0);
+						printf("recv_size : %d\n", recv_size);
+						buf[recv_size] = 0;
+						if(recv_size >= needed_len) break;
+					} 
+				}
+				//printf("total received : %d\n", recv_size);
+			}
+			free(temp);
+		}
+	}
+	buffer[0] = buf;
+	return recv_size;
+}
+
 void * http_thread(void * arg)
 {
 	net_instance * instance;
 	net_entry * root;
-	char request[32768];
+	//char request[32768];
+	char *request;
 	int recv_size;
 	char * arguments = NULL;
 	char * response;
@@ -522,14 +713,32 @@ void * http_thread(void * arg)
 	root = thread_arg->root;
 	instance = net_instance_create(ConnectFD, NET_INSTANCE_TYPE_HOST);
 	instance->root = thread_arg->root;
+	
+	instance->client_iptype = thread_arg->client.sa_family;
+	switch(thread_arg->client.sa_family) {
+		case AF_INET:		//IPv4
+			memcpy(instance->client_ip4, thread_arg->client.sa_data + 2, 4);
+			instance->port = ((unsigned)thread_arg->client.sa_data[0] * 256) + (unsigned)thread_arg->client.sa_data[1];
+			break;
+		case AF_INET6:		//IPv6
+			memcpy(instance->client_ip6, thread_arg->client.sa_data + 2, 12);
+			instance->port = ((unsigned)thread_arg->client.sa_data[0] * 256) + (unsigned)thread_arg->client.sa_data[1];
+			break;
+		default:
+			break;
+	}
     recv_size = net_recv(ConnectFD, request, sizeof(request), 0);
-	request[recv_size] = 0;
-	  //sprintf(response, "HTTP/1.1 200 OK\r\nDate: Thu, 31 Jan 2019 18:36:32 GMT\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n", instance->response_size);
-	  //if(instance->response_payload) memcpy(response + strlen(response), (const char *)instance->response_payload, instance->response_size);
-	response = (char *)http_decode(instance, root, (char *)request, recv_size, &response_length);
-	if(response != NULL) {
-		net_send(ConnectFD, response, response_length, 0);
-		free(response);
+	recv_size = http_read_request(ConnectFD, &request);
+	if(recv_size > 0 && request != NULL) {
+		request[recv_size] = 0;
+		//sprintf(response, "HTTP/1.1 200 OK\r\nDate: Thu, 31 Jan 2019 18:36:32 GMT\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\n\r\n", instance->response_size);
+		//if(instance->response_payload) memcpy(response + strlen(response), (const char *)instance->response_payload, instance->response_size);
+		response = (char *)http_decode(instance, root, (char *)request, recv_size, &response_length);
+		if(response != NULL) {
+			net_send(ConnectFD, response, response_length, 0);
+			free(response);
+		}
+		free(request);
 	}
 	//cleanup
 	net_instance_release(instance);
@@ -547,7 +756,11 @@ void * http_task(void * arg) {
     pthread_t thread;
 	net_exec_arg * thread_arg;
 	net_instance * instance;
+    struct sockaddr client;
+    int     client_len = sizeof(client);
 	http_init_arg * init = (http_init_arg *)arg;
+    int client_port;
+    unsigned char * client_ip;
     int SocketFD = net_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (SocketFD == -1) {
       perror("http cannot create socket");
@@ -573,19 +786,27 @@ void * http_task(void * arg) {
     }
   
     for (;;) {
-      int ConnectFD = net_accept(SocketFD, NULL, NULL);
+      int ConnectFD = net_accept(SocketFD, &client, &client_len);
   
       if (0 > ConnectFD) {
         perror("accept failed");
         net_close(SocketFD);
         exit(EXIT_FAILURE);
       }
+
+	  client_port = ((unsigned char)client.sa_data[0]*256)+(unsigned char)client.sa_data[1];
+	  client_ip = client.sa_data + 2;
+	  //printf("client(%d) : %ld.%ld.%ld\n", client.sa_family, ((unsigned char)client.sa_data[0]*256)+(unsigned char)client.sa_data[1],(unsigned char)client.sa_data[2],(unsigned char)client.sa_data[3]);
+	  //printf("client(%d) : %ld.%ld.%ld.%ld\n", client.sa_family, (unsigned char)client.sa_data[4],(unsigned char)client.sa_data[5],(unsigned char)client.sa_data[6],(unsigned char)client.sa_data[7]);
+	  //printf("client(%d) : %ld.%ld.%ld.%ld\n", client.sa_family, (unsigned char)client.sa_data[8],(unsigned char)client.sa_data[9],(unsigned char)client.sa_data[10],(unsigned char)client.sa_data[11]);
+	  //printf("client(%d) : %ld.%ld.%ld.%ld\n", client.sa_family, (unsigned char)client.sa_data[12],(unsigned char)client.sa_data[13],(unsigned char)client.sa_data[14],(unsigned char)client.sa_data[15]);
   
       //create a new thread here
 	  thread_arg = (net_exec_arg *)malloc(sizeof(net_exec_arg));
 	  thread_arg->ConnectFD = ConnectFD;
 	  thread_arg->root = (net_entry *)init->root;
 	  thread_arg->instance = instance;
+	  memcpy(&thread_arg->client, &client, sizeof(struct sockaddr));
 	  if(pthread_create(&thread, NULL, http_thread, thread_arg) == 0) {
 		//thread executed
 	  }

@@ -16,12 +16,60 @@
 #endif
 #include "StackVM/midgard.h"
 #include <pthread.h>
+#include <ctype.h>
+
+int istrncmp(char const *a, char const *b, int max_len)
+{
+	if(strlen(a) != strlen(b)) return -1;
+    for (;max_len>0 && *a !=0; a++, b++, max_len--) {
+        int d = tolower((unsigned char)*a) - tolower((unsigned char)*b);
+        if (d != 0)
+            return d;
+    }
+	return 0;
+}
+
+char* istrstr(char* text, char* pattern) {
+	//naive algorithm
+	char* index = NULL;
+	int s = strlen(text);
+	int r = strlen(pattern);
+	//1. SET K = 1 and MAX = S - R + 1.
+	int k = 0;
+	int max = s - r ;
+	//2. Repeat Step 3 to 5 while K <= MAX:
+	for (; k <= max;) {
+		//3.   Repeat for L = 1 to R :
+		for (int l = 0; l < r; l++) {
+			//If TEXT[K + L - 1] ≠ PAT[L], then : Go to Step 5.
+			if ((pattern[l] >= 'a' && pattern[l] <= 'z') || (pattern[l] >= 'A' && pattern[l] <= 'Z')) {
+				if (tolower(text[k + l]) != tolower(pattern[l])) goto skip_next;
+			} else {
+				if (text[k + l] != pattern[l]) goto skip_next;
+			}
+		}
+		//SET INDEX = K, and EXIT.
+		index = &text[k]; break;
+		skip_next:
+		//5.   K = K + 1.
+		k += 1;
+	}
+	//	6. SET INDEX = 0.
+	//index = NULL;
+	//7. Exit.
+	return index;
+}
 
 net_param * net_param_create(char * key, char * value, int max_size) {
-	net_param * param = (net_param *)malloc(sizeof(net_param) + ((strlen(value) > max_size)?strlen(value):max_size));
+	int len = ((strlen(value) > max_size)?strlen(value):max_size);
+	net_param * param = (net_param *)malloc(sizeof(net_param) + len);
+	param->length = len;
 	param->next = NULL;
 	strncpy(param->key, key, OWS_MAX_VARIABLE_NAME);
-	if(value != NULL) strcpy(param->value, value);
+	if(value != NULL) {
+		strncpy(param->value, value, len);
+		param->value[len] = 0;		//null terminated string
+	}
 	return param;
 }
 
@@ -197,6 +245,8 @@ net_instance * net_instance_create(int conn, int type) {
 	memset(instance, 0, sizeof(net_instance));
 	instance->type = type;
 	instance->conn = conn;
+	instance->status = 200;
+	instance->message = "OK";
 	param = net_param_create("Date", "", 64);
 	ltm = localtime(&now);
 	sprintf(datetime_buffer, "%s, %d %s %04d %02d:%02d:%02d GMT", g_str_days[ltm->tm_wday], ltm->tm_mday, g_str_months[ltm->tm_mon],

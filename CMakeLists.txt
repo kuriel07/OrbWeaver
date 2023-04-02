@@ -172,6 +172,7 @@ set(torus_source_files
   ${PROJECT_SOURCE_DIR}/StackHost/stack/stack_port.c
   ${PROJECT_SOURCE_DIR}/StackHost/stack/stack_ext_network.c
   ${PROJECT_SOURCE_DIR}/StackHost/core/http.c
+  ${PROJECT_SOURCE_DIR}/StackHost/core/http_multipart.c
   ${PROJECT_SOURCE_DIR}/StackHost/core/https.c
   ${PROJECT_SOURCE_DIR}/StackHost/core/net.cpp
   ${PROJECT_SOURCE_DIR}/StackHost/core/global.c
@@ -269,7 +270,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         PROPERTIES COMPILE_FLAGS "-x assembler-with-cpp"
     )
     add_library(orbweaver SHARED
-        ${orbweaver_source_files} 
+        ${glome_source_files} 
+        ${torus_source_files}  
     )
     target_compile_definitions(orbweaver PRIVATE "-DSTACK_HOST")
     target_include_directories(orbweaver PRIVATE
@@ -288,7 +290,8 @@ endif()
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     # Linux specific code
     add_library(orbweaver SHARED 
-        ${orbweaver_source_files} 
+        ${glome_source_files} 
+        ${torus_source_files} 
     )
     target_compile_definitions(orbweaver PRIVATE "-DSTACK_HOST")
     target_include_directories(orbweaver PRIVATE
