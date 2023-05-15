@@ -1,0 +1,6 @@
+message(${CMAKE_CURRENT_LIST_FILE})
+get_filename_component(SELF_DIR "/usr/local/lib/cmake/orbweaver/OrbWeaverConfig.cmake" PATH)
+message(${SELF_DIR})
+include(${SELF_DIR}/orbweaver-targets.cmake)
+get_filename_component(OrbWeaver_INCLUDE_DIRS "${SELF_DIR}/../../../include" ABSOLUTE)
+get_filename_component(OrbWeaver_LIBRARIES "${SELF_DIR}/../../liborbweaver.so" ABSOLUTE)

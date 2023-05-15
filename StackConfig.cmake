@@ -1,0 +1,6 @@
+message(${CMAKE_CURRENT_LIST_FILE})
+get_filename_component(SELF_DIR "/usr/local/lib/cmake/stack/StackConfig.cmake" PATH)
+message(${SELF_DIR})
+include(${SELF_DIR}/stack-targets.cmake)
+get_filename_component(Stack_INCLUDE_DIRS "${SELF_DIR}/../../../include" ABSOLUTE)
+get_filename_component(Stack_LIBRARIES "${SELF_DIR}/../../libstack.so" ABSOLUTE)
