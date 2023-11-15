@@ -1,3 +1,15 @@
+### OrbWeaver running Caffe Machine Learning Framework
+
+an example application of OrbWeaver scripting language running caffe machine learning framework, caffe APIs are accessed through runtime native wrapper which translate function call between OrbWeaver scripting application function call and operating system function call (windows prochedure call on windows OS or system V ABI on POSIX)
+
+[![Watch the video](https://img.youtube.com/vi/hnfQDXEFkuo/hqdefault.jpg)](https://www.youtube.com/embed/hnfQDXEFkuo)
+
+### OrbWeaver running OpenCV library, face landmark algorithm running at realtime performance
+
+an example application of OrbWeaver scripting language running OpenCV library, OpenCV APIs are accessed through runtime native wrapper which translate function call between OrbWeaver scripting application function call and operating system function call (windows prochedure call on windows OS or system V ABI on POSIX)
+
+[![Watch the video](https://img.youtube.com/vi/6t9gJXFUahs/hqdefault.jpg)](https://www.youtube.com/embed/6t9gJXFUahs)
+
 this is the sourcecode for OrbWeaver scripting language (weak, static type, object oriented, imperative), OrbWeaver support native call to external library based on x64 calling convention for Windows x64 and System V EABI for Linux, just add the library to /modules path of the OrbWeaver binary and declare the interface on /includes directory, see example modules for detail (modules.zip)
 
     interface gtk lib "libgtk_lib.so" {
