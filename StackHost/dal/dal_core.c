@@ -288,6 +288,7 @@ dal_result * dal_conn_remove_result(dal_conn * conn, dal_result * result) {
 			else prev->next = iterator->next;
 			return iterator;
 		}
+		prev = iterator;			//prev never assigned, fixed (20231203)
 		iterator = iterator->next;
 	}
 	return iterator;
